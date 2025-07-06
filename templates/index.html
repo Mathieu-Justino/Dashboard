@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Transit Info</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <h1>Live Transit Information</h1>
+
+    {# Change this line: Check with .is_some() #}
+    {% if closest_stop_name.is_some() %}
+        <div class="route-info">
+            <h2>Closest Stop Found:</h2>
+            <p><strong>Name:</strong> {% if let Some(name) = closest_stop_name %}{{ name }}{% endif %}</p>
+            <p><strong>ID:</strong> {% if let Some(id) = closest_stop_id %}{{ id }}{% endif %}</p>
+            <p><strong>Location:</strong>
+                {% if let Some(lat) = closest_stop_lat %}{{ lat }}{% endif %},
+                {% if let Some(lon) = closest_stop_lon %}{{ lon }}{% endif %}
+            </p>
+            {# Change this line too, if closest_stop_parent_station_name is also an Option #}
+            {% if closest_stop_parent_station_name.is_some() %}
+                <p><strong>Parent Station:</strong> {% if let Some(parent_name) = closest_stop_parent_station_name %}{{ parent_name }}{% endif %}</p>
+            {% endif %}
+        </div>
+    {% else %}
+        <p class="error-message">No closest stop information found for the default location.</p>
+    {% endif %}
+
+</body>
+</html>

@@ -1,31 +1,109 @@
 body {
-    font-family: sans-serif;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     margin: 20px;
-    background-color: #000000;
+    background-color: #f0f2f5;
     color: #333;
-    line-height: 1.6;
 }
-h1, h2 {
-    color: #0056b3;
-    border-bottom: 2px solid #0056b3;
-    padding-bottom: 5px;
-    margin-bottom: 15px;
+h1 {
+    color: #2c3e50;
+    text-align: center;
+    margin-bottom: 30px;
 }
-.route-info {
-    background-color: #fff;
-    border: 1px solid #ddd;
-    border-radius: 8px;
+.cards-container {
+    display: flex;         /* Enables Flexbox layout */
+    flex-wrap: wrap;       /* Allows items to wrap to the next line */
+    justify-content: center; /* Centers cards horizontally when there's an odd number */
+    gap: 20px;             /* Spacing between cards (both row and column gap) */
+    max-width: 1200px;     /* Optional: Limit the overall width of the container */
+    margin: 0 auto;        /* Centers the container itself */
+}
+.departure-card {
+    background-color: white;
+    border: 1px solid #e0e0e0;
+    border-radius: 10px;
     padding: 20px;
-    margin-bottom: 20px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    margin-bottom: 25px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    transition: transform 0.2s ease-in-out;
 }
-.route-info p {
+.departure-card:hover {
+    transform: translateY(-5px);
+}
+.departure-card h2 {
+    margin-top: 0;
+    color: #34495e;
+    border-bottom: 2px solid #e9ecef;
+    padding-bottom: 10px;
+    margin-bottom: 15px;
+    font-size: 1.6em;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+.departure-card h2 .route-short-name {
+    font-size: 1.2em;
+    font-weight: bold;
+    padding: 5px 10px;
+    border-radius: 5px;
+    color: white;
+    min-width: 50px; /* Ensure some width for badge */
+    text-align: center;
+}
+.departure-card p {
     margin: 8px 0;
+    color: #555;
+    line-height: 1.5;
 }
-.route-info strong {
+.departure-card p strong {
     color: #333;
 }
-.error-message {
-    color: #d9534f;
+.departure-details {
+    font-size: 0.95em;
+    color: #666;
+    margin-top: 20px;
+    border-top: 1px dashed #cfd8dc;
+    padding-top: 15px;
+}
+.upcoming-times {
+    list-style-type: none;
+    padding: 0;
+    margin-top: 10px;
+}
+.upcoming-times li {
+    background-color: #f8f9fa;
+    margin-bottom: 8px;
+    padding: 10px 15px;
+    border-left: 5px solid #007bff;
+    border-radius: 5px;
+    font-size: 0.9em;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+}
+.upcoming-times li.cancelled {
+    border-left-color: #dc3545;
+    background-color: #fdf5f5;
+    text-decoration: line-through;
+    color: #a0a0a0;
+}
+.time-label {
     font-weight: bold;
+    color: #34495e;
+}
+.status-badge {
+    font-size: 0.8em;
+    padding: 3px 8px;
+    border-radius: 12px;
+    background-color: #6c757d;
+    color: white;
+}
+.status-badge.real-time {
+    background-color: #28a745;
+}
+.status-badge.scheduled {
+    background-color: #007bff;
+}
+.status-badge.cancelled {
+    background-color: #dc3545;
 }

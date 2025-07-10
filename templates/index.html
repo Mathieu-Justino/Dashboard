@@ -4,74 +4,77 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Nearby Transit Departures</title>
-    <style>
-        body { font-family: sans-serif; margin: 20px; background-color: #f4f4f4; }
-        .departure-card {
-            background-color: white;
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            padding: 15px;
-            margin-bottom: 15px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        }
-        .departure-card h2 {
-            margin-top: 0;
-            color: #333;
-            border-bottom: 1px solid #eee;
-            padding-bottom: 10px;
-            margin-bottom: 15px;
-        }
-        .departure-card p {
-            margin: 5px 0;
-            color: #555;
-        }
-        .departure-details {
-            font-size: 0.9em;
-            color: #666;
-            margin-top: 10px;
-            border-top: 1px dashed #eee;
-            padding-top: 10px;
-        }
-    </style>
+    <link rel="stylesheet" href="/static/style.css">
 </head>
 <body>
-    <h1>Upcoming Transit Departures</h1>
+    <h1>Upcoming Transit Departures in Montreal</h1>
 
     {% if routes.is_empty() %}
-        <p>No upcoming transit departures found within the default search area.</p>
+        <p style="text-align: center; color: #6c757d; font-size: 1.1em;">
+            No upcoming transit departures found within the default search area (Lat: {{ DEFAULT_LAT }}, Lon: {{ DEFAULT_LON }}, Max Distance: {{ DEFAULT_MAX_DISTANCE }}m).
+            Please ensure the API key is valid and there's service at this location.
+        </p>
     {% else %}
-        {% for departure in routes %} {# CHANGE: iterating over `routes`, calling each item `departure` #}
-        <div class="departure-card">
-            <h2>
-                {{ departure.route_short_name }} ({{ departure.mode_name }}) - To: {{ departure.direction_headsign }}
-            </h2>
-            <p><strong>From Stop:</strong> {{ departure.stop_name }} (ID: {{ departure.stop_id }})</p>
-            <p><strong>Location:</strong> Lat {{ departure.stop_lat }}, Lon {{ departure.stop_lon }}</p>
+        <div class="cards-container"> {# <--- ADD THIS CONTAINER #}
+            {% for departure in routes %}
+            <div class="departure-card">
+                {# ... existing content of departure-card ... #}
+                <h2>
+                    <span class="route-info">
+                        Route {{ departure.route_short_name }} ({{ departure.mode_name }})
+                        {% if let Some(route_color) = departure.route_color %}
+                            <span class="route-short-name" style="background-color: #{{ route_color }};">
+                                {{ departure.route_short_name }}
+                            </span>
+                        {% else %}
+                            <span class="route-short-name" style="background-color: #6c757d;">
+                                {{ departure.route_short_name }}
+                            </span>
+                        {% endif %}
+                    </span>
+                    <span style="font-size: 0.8em; color: #7f8c8d;">To: {{ departure.direction_headsign }}</span>
+                </h2>
+                <p><strong>Stop:</strong> {{ departure.stop_name }} (ID: {{ departure.stop_id }})</p>
+                <p><strong>Location:</strong> Lat {{ departure.stop_lat }}, Lon {{ departure.stop_lon }}</p>
 
-            <div class="departure-details">
-                <p>Departure Time: {{ departure.departure_time }}</p> {# You might want to format this timestamp #}
-                <p>Scheduled Departure: {{ departure.scheduled_departure_time }}</p> {# You might want to format this #}
-                <p>Status:
-                    {% if departure.is_cancelled %}
-                        <strong>Cancelled</strong>
-                    {% elif departure.is_real_time %}
-                        Real-time data
+                <div class="departure-details">
+                    <h3>Next Departures:</h3>
+                    {% if departure.upcoming_departures.is_empty() %}
+                        <p>No upcoming departures available for this specific route and direction.</p>
                     {% else %}
-                        Scheduled
+                        <ul class="upcoming-times">
+                            {% for item in departure.upcoming_departures.iter().take(3) %}
+                                <li {% if item.is_cancelled %}class="cancelled"{% endif %}>
+                                    <div>
+                                        <span class="time-label">Departure:</span>
+                                        {% if item.is_real_time %}
+                                            Live: {{ item.departure_time }}
+                                        {% else %}
+                                            Scheduled: {{ item.scheduled_departure_time }}
+                                        {% endif %}
+                                    </div>
+                                    <div>
+                                        {% if item.is_cancelled %}
+                                            <span class="status-badge cancelled">CANCELLED</span>
+                                        {% elif item.is_real_time %}
+                                            <span class="status-badge real-time">LIVE</span>
+                                        {% else %}
+                                            <span class="status-badge scheduled">SCHEDULED</span>
+                                        {% endif %}
+                                    </div>
+                                </li>
+                            {% endfor %}
+                        </ul>
+                        {% if departure.upcoming_departures.len() > 3 %}
+                            <p style="font-size: 0.8em; text-align: center; margin-top: 10px; color: #7f8c8d;">
+                                And {{ departure.upcoming_departures.len() - 3 }} more upcoming departures...
+                            </p>
+                        {% endif %}
                     {% endif %}
-                </p>
-                {% if let Some(route_color) = departure.route_color %}
-                    <p style="background-color: #{{ route_color }}; padding: 5px; border-radius: 3px; display: inline-block;">
-                        Route Color Preview (Hex: #{{ route_color }})
-                    </p>
-                {% else %}
-                    {# Optional: Display something if there's no route color #}
-                    <p>No route color available.</p>
-                {% endif %}
+                </div>
             </div>
-        </div>
-        {% endfor %}
+            {% endfor %}
+        </div> {# <--- CLOSE THE CONTAINER #}
     {% endif %}
-
 </body>
 </html>

@@ -21,9 +21,9 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("API Key loaded successfully."); // Don't print the actual key!
 
     let app = Router::new()
-        .nest_service("/static", ServeDir::new("static"))
         .route("/", get(handlers::root_handler))
-        .route("/api/routes", get(handlers::root_handler));
+        .route("/api/routes", get(handlers::root_handler))
+        .nest_service("/static", ServeDir::new("static"));
 
     let addr = SocketAddr::from(([127, 0, 0, 1], 3000)); // Listen on localhost, port 3000
     println!("listening on http://{}", addr);

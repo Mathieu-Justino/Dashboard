@@ -104,7 +104,7 @@ pub struct Route {
     #[serde(default)] // Use default if the field is missing
     fares: Vec<serde_json::Value>, // Using Value for fares since it's an empty array in the sample
 
-    global_route_id: String,
+    pub global_route_id: String,
 
     #[serde(default)] // Use default if the field is missing
     pub itineraries: Vec<Itinerary>,
@@ -113,7 +113,7 @@ pub struct Route {
 
     pub real_time_route_id: String,
 
-    pub route_color: String,
+    pub route_color: Option<String>,
 
     pub route_display_short_name: DisplayElements,
 

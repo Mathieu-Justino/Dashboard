@@ -58,11 +58,11 @@ pub struct ClosestStop {
 #[derive(Debug, Deserialize, Serialize)]
 pub struct ScheduleItem {
 
-    departure_time: u64,
+    pub departure_time: u64,
 
-    is_cancelled: bool,
+    pub is_cancelled: bool,
 
-    is_real_time: bool,
+    pub is_real_time: bool,
 
     rt_trip_id: String,
 
@@ -109,36 +109,37 @@ pub struct Route {
     #[serde(default)] // Use default if the field is missing
     pub itineraries: Vec<Itinerary>,
 
-    mode_name: String,
+    pub mode_name: String,
 
-    real_time_route_id: String,
+    pub real_time_route_id: String,
 
-    route_color: String,
+    pub route_color: String,
 
-    route_display_short_name: DisplayElements,
+    pub route_display_short_name: DisplayElements,
 
-    route_image: String,
+    pub route_image: String,
 
-    route_long_name: String,
+    pub route_long_name: String,
 
-    route_network_id: String,
+    pub route_network_id: String,
 
-    route_network_name: String,
+    pub route_network_name: String,
 
     pub route_short_name: String,
 
-    route_text_color: String,
+    pub route_text_color: String,
 
-    route_timezone: String,
+    pub route_timezone: String,
 
-    route_type: u8,
+    pub route_type: u8,
 
-    sorting_key: String,
+    pub sorting_key: String,
 
-    tts_long_name: String,
+    pub tts_long_name: String,
 
-    tts_short_name: String,
-    vehicle: Vehicle,
+    pub tts_short_name: String,
+
+    pub vehicle: Vehicle,
 }
 
 // The top-level container for your JSON file

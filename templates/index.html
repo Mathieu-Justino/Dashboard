@@ -3,29 +3,74 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Transit Info</title>
-    <link rel="stylesheet" href="/static/style.css">
+    <title>Nearby Transit Departures</title>
+    <style>
+        body { font-family: sans-serif; margin: 20px; background-color: #f4f4f4; }
+        .departure-card {
+            background-color: white;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 15px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .departure-card h2 {
+            margin-top: 0;
+            color: #333;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 10px;
+            margin-bottom: 15px;
+        }
+        .departure-card p {
+            margin: 5px 0;
+            color: #555;
+        }
+        .departure-details {
+            font-size: 0.9em;
+            color: #666;
+            margin-top: 10px;
+            border-top: 1px dashed #eee;
+            padding-top: 10px;
+        }
+    </style>
 </head>
 <body>
-    <h1>Live Transit Information</h1>
+    <h1>Upcoming Transit Departures</h1>
 
-    {# Change this line: Check with .is_some() #}
-    {% if closest_stop_name.is_some() %}
-        <div class="route-info">
-            <h2>Closest Stop Found:</h2>
-            <p><strong>Name:</strong> {% if let Some(name) = closest_stop_name %}{{ name }}{% endif %}</p>
-            <p><strong>ID:</strong> {% if let Some(id) = closest_stop_id %}{{ id }}{% endif %}</p>
-            <p><strong>Location:</strong>
-                {% if let Some(lat) = closest_stop_lat %}{{ lat }}{% endif %},
-                {% if let Some(lon) = closest_stop_lon %}{{ lon }}{% endif %}
-            </p>
-            {# Change this line too, if closest_stop_parent_station_name is also an Option #}
-            {% if closest_stop_parent_station_name.is_some() %}
-                <p><strong>Parent Station:</strong> {% if let Some(parent_name) = closest_stop_parent_station_name %}{{ parent_name }}{% endif %}</p>
-            {% endif %}
-        </div>
+    {% if routes.is_empty() %}
+        <p>No upcoming transit departures found within the default search area.</p>
     {% else %}
-        <p class="error-message">No closest stop information found for the default location.</p>
+        {% for departure in routes %} {# CHANGE: iterating over `routes`, calling each item `departure` #}
+        <div class="departure-card">
+            <h2>
+                {{ departure.route_short_name }} ({{ departure.mode_name }}) - To: {{ departure.direction_headsign }}
+            </h2>
+            <p><strong>From Stop:</strong> {{ departure.stop_name }} (ID: {{ departure.stop_id }})</p>
+            <p><strong>Location:</strong> Lat {{ departure.stop_lat }}, Lon {{ departure.stop_lon }}</p>
+
+            <div class="departure-details">
+                <p>Departure Time: {{ departure.departure_time }}</p> {# You might want to format this timestamp #}
+                <p>Scheduled Departure: {{ departure.scheduled_departure_time }}</p> {# You might want to format this #}
+                <p>Status:
+                    {% if departure.is_cancelled %}
+                        <strong>Cancelled</strong>
+                    {% elif departure.is_real_time %}
+                        Real-time data
+                    {% else %}
+                        Scheduled
+                    {% endif %}
+                </p>
+                {% if let Some(route_color) = departure.route_color %}
+                    <p style="background-color: #{{ route_color }}; padding: 5px; border-radius: 3px; display: inline-block;">
+                        Route Color Preview (Hex: #{{ route_color }})
+                    </p>
+                {% else %}
+                    {# Optional: Display something if there's no route color #}
+                    <p>No route color available.</p>
+                {% endif %}
+            </div>
+        </div>
+        {% endfor %}
     {% endif %}
 
 </body>

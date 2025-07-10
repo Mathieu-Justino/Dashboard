@@ -16,45 +16,35 @@ const DEFAULT_LAT: f64 = 45.597298;
 const DEFAULT_LON: f64 = -73.558154;
 const DEFAULT_MAX_DISTANCE: u32 = 5000;
 
+
+#[derive(Debug)]
+pub struct FormattedRoute {
+    // These fields correspond to the variables you use in templates/index.html
+    pub mode_name: String,
+    pub route_color: Option<String>,
+    pub route_short_name: String,
+    pub stop_name: String,
+    pub stop_id: String,
+    pub stop_lat: f64,
+    pub stop_lon: f64,
+    pub direction_headsign: String,
+    pub departure_time: u64,
+    pub is_cancelled: bool,
+    pub scheduled_departure_time: u64,
+    pub is_real_time: bool,
+}
+
 #[derive(Template, IntoResponse)]
 #[template(path = "index.html")]
 pub struct IndexTemplate {
-    // These fields correspond to the variables you use in templates/index.html
-    pub closest_stop_name: Option<String>,
-    pub closest_stop_id: Option<String>,
-    pub closest_stop_lat: Option<f64>,
-    pub closest_stop_lon: Option<f64>,
-    pub closest_stop_parent_station_name: Option<String>,
-    // If you wanted to pass full route data, uncomment this and the processing below:
-    // pub routes: Vec<FormattedRoute>,
+    pub routes: Vec<FormattedRoute>, 
 }
-// Optional: If you wanted to pass more complex data like formatted routes and schedules
-// #[derive(Debug)]
-// pub struct FormattedRoute {
-//     pub short_name: String,
-//     pub long_name: String,
-//     pub direction_name: String,
-//     pub description: Option<String>,
-//     pub itineraries: Vec<FormattedItinerary>,
-// }
-
-// #[derive(Debug)]
-// pub struct FormattedItinerary {
-//     pub schedule_items: Vec<FormattedScheduleItem>,
-// }
-
-// #[derive(Debug)]
-// pub struct FormattedScheduleItem {
-//     pub trip_headsign: Option<String>,
-//     pub minutes_until_departure: i64,
-// }
 
 pub async fn root_handler() -> impl IntoResponse {
     let api_key = std::env::var("API_KEY")
         .expect("API_KEY not set for root_handler");
 
     let routes_data_result = transit_api::fetch_transit_data(
-        
         &api_key,
         DEFAULT_LAT,
         DEFAULT_LON,
@@ -63,60 +53,39 @@ pub async fn root_handler() -> impl IntoResponse {
 
     // Prepare the template context
     let mut template_data = IndexTemplate {
-        closest_stop_name: None,
-        closest_stop_id: None,
-        closest_stop_lat: None,
-        closest_stop_lon: None,
-        closest_stop_parent_station_name: None,
-        // routes: Vec::new(), // Initialize if passing routes
+        routes: Vec::new(), 
     };
 
     match routes_data_result {
         Ok(routes_data) => {
-            let mut found_closest_stop = false;
+            for route_from_api in routes_data.routes { // Renamed for clarity
+                for itinerary_from_api in route_from_api.itineraries { // Renamed for clarity
+                    if let Some(closest_stop_from_api) = itinerary_from_api.closest_stop {
 
-            // Iterate to find the first closest stop and populate template_data
-            for route in routes_data.routes {
-                for itinerary in route.itineraries {
-                    if let Some(closest_stop) = itinerary.closest_stop {
-                        template_data.closest_stop_name = Some(closest_stop.stop_name);
-                        template_data.closest_stop_id = Some(closest_stop.global_stop_id);
-                        template_data.closest_stop_lat = Some(closest_stop.stop_lat);
-                        template_data.closest_stop_lon = Some(closest_stop.stop_lon);
+                        // Iterate through schedule items to create a FormattedRoute for each departure
+                        for schedule_item_from_api in itinerary_from_api.schedule_items {
+                             // Assuming `direction_name` is the headsign for this itinerary
 
-                        if let Some(parent_station_details) = closest_stop.parent_station {
-                            template_data.closest_stop_parent_station_name = Some(parent_station_details.station_name);
+                            template_data.routes.push(FormattedRoute {
+                                mode_name: route_from_api.mode_name.clone(), // Assuming route_from_api has this
+                                route_color: Some(route_from_api.route_color.clone()),   // Assuming route_from_api has this
+                                route_short_name: route_from_api.route_short_name.clone(),
+                                stop_name: closest_stop_from_api.stop_name.clone(),
+                                stop_id: closest_stop_from_api.global_stop_id.clone(),
+                                stop_lat: closest_stop_from_api.stop_lat,
+                                stop_lon: closest_stop_from_api.stop_lon,
+                                direction_headsign: itinerary_from_api.direction_headsign.clone(),
+                                departure_time: schedule_item_from_api.departure_time,
+                                is_cancelled: schedule_item_from_api.is_cancelled,
+                                scheduled_departure_time: schedule_item_from_api.scheduled_departure_time,
+                                is_real_time: schedule_item_from_api.is_real_time,
+                            });
                         }
-                        found_closest_stop = true;
-
-                        // If you wanted to pass all schedule items for this closest stop,
-                        // you'd format them here and add to template_data.
-                        // Example:
-                        // let now_utc = chrono::Utc::now();
-                        // let now_montreal = now_utc.with_timezone(&chrono_tz::America::Montreal);
-                        // let mut formatted_schedule_items = Vec::new();
-                        // for item in itinerary.schedule_items {
-                        //     let departure_utc = chrono::Utc.timestamp_opt(item.departure_time as i64, 0).single().unwrap_or_default();
-                        //     let departure_montreal = departure_utc.with_timezone(&chrono_tz::America::Montreal);
-                        //     let duration_until_departure = departure_montreal.signed_duration_since(now_montreal);
-                        //     let minutes_until_departure = duration_until_departure.num_minutes();
-                        //     formatted_schedule_items.push(FormattedScheduleItem {
-                        //         trip_headsign: item.trip_headsign,
-                        //         minutes_until_departure,
-                        //     });
-                        // }
-                        // template_data.schedule_items = formatted_schedule_items;
-
-                        break; // Exit itinerary loop after finding first stop
                     }
                 }
-                if found_closest_stop {
-                    break; // Exit route loop
-                }
             }
-
             // Render the template and return the response.
-            template_data.into_response() // Askama's Template trait implements IntoResponse
+            template_data.into_response()
         }
         Err(e) => {
             eprintln!("Error fetching transit data: {}", e);
